@@ -1,4 +1,4 @@
-import Welcome3 from "@/components/screens/welcome-3";
+import Welcome3 from '@/components/screens/welcomeScreen/welcome-3';
 
 export default function Welcome3Screen() {
   return <Welcome3 />;
