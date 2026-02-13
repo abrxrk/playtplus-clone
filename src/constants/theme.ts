@@ -1,29 +1,40 @@
 /**
- * Below are the colors that are used in the app. The colors are defined in the light and dark mode.
- * There are many other ways to style your app. For example, [Nativewind](https://www.nativewind.dev/), [Tamagui](https://tamagui.dev/), [unistyles](https://reactnativeunistyles.vercel.app), etc.
+ * Theme Configuration
+ * 
+ * Combines all design tokens into a unified theme object
+ * Based on Figma design system
  */
 
 import { Platform } from 'react-native';
+import { Colors } from './colors';
+import { Typography } from './typography';
+import { Spacing } from './spacing';
 
-const tintColorLight = '#0a7ea4';
-const tintColorDark = '#fff';
+const tintColorLight = '#01295F';
+const tintColorDark = '#4A90E2';
 
-export const Colors = {
+export const ThemeColors = {
   light: {
-    text: '#11181C',
-    background: '#fff',
+    text: Colors.text,
+    background: Colors.background,
     tint: tintColorLight,
-    icon: '#687076',
-    tabIconDefault: '#687076',
+    icon: Colors.gray500,
+    tabIconDefault: Colors.gray500,
     tabIconSelected: tintColorLight,
+    primary: Colors.primary,
+    secondary: Colors.primaryLight,
+    border: Colors.border,
   },
   dark: {
-    text: '#ECEDEE',
-    background: '#151718',
+    text: Colors.textInverse,
+    background: Colors.gray600,
     tint: tintColorDark,
-    icon: '#9BA1A6',
-    tabIconDefault: '#9BA1A6',
+    icon: Colors.gray300,
+    tabIconDefault: Colors.gray300,
     tabIconSelected: tintColorDark,
+    primary: Colors.primaryLight,
+    secondary: Colors.primary,
+    border: Colors.gray500,
   },
 };
 
@@ -51,3 +62,13 @@ export const Fonts = Platform.select({
     mono: "SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace",
   },
 });
+
+const theme = {
+  colors: Colors,
+  typography: Typography,
+  spacing: Spacing,
+  fonts: Fonts,
+  themeColors: ThemeColors,
+};
+
+export default theme;
