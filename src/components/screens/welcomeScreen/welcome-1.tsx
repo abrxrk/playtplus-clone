@@ -1,63 +1,152 @@
-import { View, Text, StyleSheet } from 'react-native';
+import React from 'react';
+import { View, Text, StyleSheet, Pressable } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
+import { Ionicons } from '@expo/vector-icons';
+import { Colors } from '@/constants/colors';
+import { Spacing } from '@/constants/spacing';
+import { Typography } from '@/constants/typography';
 
-export default function Welcome1() {
+type Welcome1Props = {
+  onGetStarted: () => void;
+};
+
+const features = [
+  {
+    icon: 'people-outline' as const,
+    title: 'Join Communities',
+    description:
+      'Connect with fellow players and find your local squad effortlessly.',
+  },
+  {
+    icon: 'calendar-outline' as const,
+    title: 'Organize Events',
+    description: 'Create tournaments, matches, and schedule games in seconds.',
+  },
+  {
+    icon: 'share-social-outline' as const,
+    title: 'Social Media',
+    description: 'Share your highlights, stats, and victory moments with the world.',
+  },
+];
+
+export default function Welcome1({ onGetStarted }: Welcome1Props) {
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <StatusBar style="auto" />
 
-      {/* TODO: Add PlaytPlus logo and tagline */}
       <View style={styles.header}>
-        <Text style={styles.placeholder}>PlaytPlus Logo</Text>
-        <Text style={styles.placeholder}>CONNECT & PLAY</Text>
+        <Text style={styles.logo}>PlaytPlus</Text>
+        <Text style={styles.tagline}>CONNECT & PLAY</Text>
       </View>
 
-      {/* TODO: Add welcome heading */}
       <View style={styles.content}>
-        <Text style={styles.placeholder}>Welcome to PlaytPlus</Text>
+        <Text style={styles.title}>Welcome to PlaytPlus</Text>
 
-        {/* TODO: Add three feature items with icons */}
         <View style={styles.features}>
-          <Text style={styles.placeholder}>Feature 1: Join Communities</Text>
-          <Text style={styles.placeholder}>Feature 2: Organize Events</Text>
-          <Text style={styles.placeholder}>Feature 3: Social Media</Text>
+          {features.map((feature) => (
+            <View key={feature.title} style={styles.featureItem}>
+              <View style={styles.iconContainer}>
+                <Ionicons name={feature.icon} size={28} color={Colors.primary} />
+              </View>
+              <View style={styles.featureText}>
+                <Text style={styles.featureTitle}>{feature.title}</Text>
+                <Text style={styles.featureDescription}>{feature.description}</Text>
+              </View>
+            </View>
+          ))}
         </View>
       </View>
 
-      {/* TODO: Add "Get Started" button */}
       <View style={styles.footer}>
-        <Text style={styles.placeholder}>Get Started Button</Text>
-        <Text style={styles.placeholder}>Page Indicators</Text>
+        <Pressable onPress={onGetStarted} style={styles.getStartedButton}>
+          <Text style={styles.getStartedText}>Get Started</Text>
+        </Pressable>
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
-    padding: 16,
+    backgroundColor: Colors.white,
+    paddingHorizontal: Spacing.base,
+    paddingBottom: Spacing['3xl'],
   },
   header: {
     alignItems: 'center',
-    marginTop: 40,
-    marginBottom: 40,
+    marginBottom: Spacing['1xl'],
+    marginTop: Spacing['3xl'],
+  },
+  logo: {
+    fontSize: Typography.fontSize['3xl'],
+    fontWeight: Typography.fontWeight.bold,
+    color: Colors.text,
+  },
+  tagline: {
+    marginTop: Spacing.xs,
+    fontSize: Typography.fontSize.xs,
+    fontWeight: Typography.fontWeight.semibold,
+    color: Colors.info,
+    letterSpacing: 1.2,
   },
   content: {
     flex: 1,
     justifyContent: 'center',
   },
+  title: {
+    fontSize: Typography.fontSize.xl,
+    fontWeight: Typography.fontWeight.bold,
+    color: Colors.text,
+    marginBottom: Spacing.xl,
+  },
   features: {
-    marginTop: 40,
+    gap: Spacing.xl,
+  },
+  featureItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: Spacing.lg,
+  },
+  iconContainer: {
+    height: 56,
+    width: 56,
+    borderRadius: 16,
+    backgroundColor: Colors.white,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: Colors.black,
+    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 6,
+    elevation: 3,
+  },
+  featureText: {
+    flex: 1,
+  },
+  featureTitle: {
+    fontSize: Typography.fontSize.base,
+    fontWeight: Typography.fontWeight.semibold,
+    color: Colors.text,
+    marginBottom: Spacing.xs,
+  },
+  featureDescription: {
+    fontSize: Typography.fontSize.sm,
+    color: Colors.textSecondary,
+    lineHeight: 20,
   },
   footer: {
     alignItems: 'center',
-    marginBottom: 40,
+    paddingTop: Spacing.lg,
   },
-  placeholder: {
-    fontSize: 16,
-    color: '#666666',
-    marginVertical: 8,
+  getStartedButton: {
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.lg,
+  },
+  getStartedText: {
+    fontSize: Typography.fontSize.base,
+    fontWeight: Typography.fontWeight.semibold,
+    color: Colors.info,
   },
 });
