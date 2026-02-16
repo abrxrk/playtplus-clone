@@ -33,7 +33,7 @@ export default function LoginScreen({ onLogin, onSignUp, onForgotPassword }: Log
         <View style={styles.header}>
           <Text style={styles.logo}>PlaytPlus</Text>
           <Text style={styles.welcome}>Welcome Back!</Text>
-          <Text style={styles.subtitle}>Sign in to continue</Text>
+          {/* <Text style={styles.subtitle}>Sign in to continue</Text> */}
         </View>
 
         <View style={styles.form}>

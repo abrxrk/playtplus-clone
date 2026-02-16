@@ -109,25 +109,6 @@ export default function SignUpScreen({ onSignUp, onLogin }: SignUpScreenProps) {
               style={styles.signupButton}
             />
           </View>
-
-          <View style={styles.divider}>
-            <View style={styles.dividerLine} />
-            <Text style={styles.dividerText}>Or sign up with</Text>
-            <View style={styles.dividerLine} />
-          </View>
-
-          <View style={styles.socialButtons}>
-            <Pressable style={styles.socialButton}>
-              <Ionicons name="logo-google" size={24} color={Colors.text} />
-            </Pressable>
-            <Pressable style={styles.socialButton}>
-              <Ionicons name="logo-apple" size={24} color={Colors.text} />
-            </Pressable>
-            <Pressable style={styles.socialButton}>
-              <Ionicons name="logo-facebook" size={24} color={Colors.text} />
-            </Pressable>
-          </View>
-
           <View style={styles.footer}>
             <Text style={styles.loginText}>
               Already have an account?{' '}
