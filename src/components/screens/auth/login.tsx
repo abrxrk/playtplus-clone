@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Pressable, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, StyleSheet, Pressable, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { Colors } from '@/constants/colors';
@@ -30,54 +30,61 @@ export default function LoginScreen({ onLogin, onSignUp, onForgotPassword }: Log
         style={styles.keyboardView}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        <View style={styles.header}>
-          <Text style={styles.logo}>PlaytPlus</Text>
-          <Text style={styles.welcome}>Welcome Back!</Text>
-          {/* <Text style={styles.subtitle}>Sign in to continue</Text> */}
-        </View>
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
+          <View style={styles.header}>
+            <Text style={styles.logo}>PlaytPlus</Text>
+            <Text style={styles.welcome}>Welcome Back!</Text>
+            {/* <Text style={styles.subtitle}>Sign in to continue</Text> */}
+          </View>
 
-        <View style={styles.form}>
-          <Input
-            label="Email"
-            placeholder="Enter your email"
-            value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
-            autoCapitalize="none"
-            autoComplete="email"
-          />
-          
-          <Input
-            label="Password"
-            placeholder="Enter your password"
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-            autoCapitalize="none"
-            autoComplete="password"
-          />
+          <View style={styles.form}>
+            <Input
+              label="Email"
+              placeholder="Enter your email"
+              value={email}
+              onChangeText={setEmail}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              autoComplete="email"
+            />
+            
+            <Input
+              label="Password"
+              placeholder="Enter your password"
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry
+              autoCapitalize="none"
+              autoComplete="password"
+            />
 
-          <Pressable onPress={onForgotPassword} style={styles.forgotPassword}>
-            <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
-          </Pressable>
+            <Pressable onPress={onForgotPassword} style={styles.forgotPassword}>
+              <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
+            </Pressable>
 
-          <Button
-            title="Login"
-            onPress={handleLogin}
-            variant="primary"
-            size="large"
-            style={styles.loginButton}
-          />
-        </View>
-
-        <View style={styles.footer}>
-          <Text style={styles.signupText}>
-            Don&apos;t have an account?{' '}
-            <Text style={styles.signupLink} onPress={onSignUp}>
-              Sign up
+            <Button
+              title="Login"
+              onPress={handleLogin}
+              variant="primary"
+              size="large"
+              style={styles.loginButton}
+            />
+          </View>
+          <View style={styles.footerSpacer}/>
+          <View style={styles.footer}>
+            <Text style={styles.signupText}>
+              Don&apos;t have an account?{' '}
+              <Text style={styles.signupLink} onPress={onSignUp}>
+                Sign up
+              </Text>
             </Text>
-          </Text>
-        </View>
+          </View>
+        </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -90,7 +97,13 @@ const styles = StyleSheet.create({
   },
   keyboardView: {
     flex: 1,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
     paddingHorizontal: Spacing.xl,
+    paddingBottom: Spacing['2xl'],
   },
   header: {
     alignItems: 'center',
@@ -128,6 +141,9 @@ const styles = StyleSheet.create({
   },
   loginButton: {
     width: '100%',
+  },
+  footerSpacer: {
+    height: Spacing['2xl'],
   },
   footer: {
     alignItems: 'center',

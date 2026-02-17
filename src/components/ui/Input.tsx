@@ -1,5 +1,8 @@
 import React from 'react';
 import { View, TextInput, Text, StyleSheet, TextInputProps } from 'react-native';
+import { Colors } from '@/constants/colors';
+import { Spacing } from '@/constants/spacing';
+import { Typography } from '@/constants/typography';
 
 /**
  * Reusable Input Component
@@ -34,7 +37,7 @@ export default function Input({
           error && styles.inputError,
           style,
         ]}
-        placeholderTextColor="#999999"
+        placeholderTextColor={Colors.textTertiary}
         {...props}
       />
       {error && <Text style={styles.error}>{error}</Text>}
@@ -44,30 +47,30 @@ export default function Input({
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: 16,
+    marginBottom: Spacing.base,
   },
   label: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#333333',
-    marginBottom: 8,
+    fontSize: Typography.fontSize.base,
+    fontWeight: Typography.fontWeight.semibold,
+    color: Colors.text,
+    marginBottom: Spacing.sm,
   },
   input: {
-    backgroundColor: '#F5F5F5',
+    backgroundColor: Colors.backgroundSecondary,
     borderRadius: 12,
-    paddingHorizontal: 16,
+    paddingHorizontal: Spacing.base,
     paddingVertical: 14,
-    fontSize: 16,
-    color: '#333333',
+    fontSize: Typography.fontSize.base,
+    color: Colors.text,
     borderWidth: 1,
     borderColor: 'transparent',
   },
   inputError: {
-    borderColor: '#FF3B30',
+    borderColor: Colors.error,
   },
   error: {
-    fontSize: 14,
-    color: '#FF3B30',
-    marginTop: 4,
+    fontSize: Typography.fontSize.sm,
+    color: Colors.error,
+    marginTop: Spacing.xs,
   },
 });
