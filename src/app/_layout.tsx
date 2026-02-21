@@ -29,10 +29,10 @@ export default function RootLayout() {
         <Stack.Screen name="(onboarding)" />
         
         {/* Auth flow */}
-        <Stack.Screen name="(auth)" />
+        <Stack.Screen name="(auth)"  options={{ gestureEnabled: false }} />
         
         {/* Main app */}
-        <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="(tabs)"  options={{ gestureEnabled: false }} />
         
         {/* Modal screens */}
         <Stack.Screen 

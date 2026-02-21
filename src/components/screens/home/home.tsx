@@ -1,12 +1,5 @@
 import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  Image,
-} from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
@@ -16,6 +9,7 @@ import EventListCard from '@/components/ui/EventListCard';
 import { Colors } from '@/constants/colors';
 import { Spacing } from '@/constants/spacing';
 import { Typography } from '@/constants/typography';
+import { router } from 'expo-router';
 
 const topEvents = [
   {
@@ -23,21 +17,24 @@ const topEvents = [
     title: 'Summer Sound Festival',
     date: 'Aug 12',
     location: 'Downtown Park',
-    imageUrl: 'https://images.unsplash.com/photo-1508609349937-5ec4ae374ebf?auto=format&fit=crop&w=800&q=80',
+    imageUrl:
+      'https://images.unsplash.com/photo-1508609349937-5ec4ae374ebf?auto=format&fit=crop&w=800&q=80',
   },
   {
     id: 'top-2',
     title: 'Tech Beats Live',
     date: 'Sep 05',
     location: 'City Arena',
-    imageUrl: 'https://images.unsplash.com/photo-1507878866276-a947ef722fee?auto=format&fit=crop&w=800&q=80',
+    imageUrl:
+      'https://images.unsplash.com/photo-1507878866276-a947ef722fee?auto=format&fit=crop&w=800&q=80',
   },
   {
     id: 'top-3',
     title: 'Creative Minds Summit',
     date: 'Sep 22',
     location: 'Warehouse District',
-    imageUrl: 'https://images.unsplash.com/photo-1470229538611-16ba8c7ffbd7?auto=format&fit=crop&w=800&q=80',
+    imageUrl:
+      'https://images.unsplash.com/photo-1470229538611-16ba8c7ffbd7?auto=format&fit=crop&w=800&q=80',
   },
 ];
 
@@ -48,7 +45,8 @@ const events = [
     date: 'Oct 12',
     location: 'Blue Note Club',
     price: '$25',
-    imageUrl: 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=800&q=80',
+    imageUrl:
+      'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=800&q=80',
   },
   {
     id: 'event-2',
@@ -56,7 +54,8 @@ const events = [
     date: 'Oct 15',
     location: 'Grand Gallery',
     price: 'Free',
-    imageUrl: 'https://images.unsplash.com/photo-1485827404703-89b55fcc595e?auto=format&fit=crop&w=800&q=80',
+    imageUrl:
+      'https://images.unsplash.com/photo-1485827404703-89b55fcc595e?auto=format&fit=crop&w=800&q=80',
   },
   {
     id: 'event-3',
@@ -64,7 +63,8 @@ const events = [
     date: 'Oct 20',
     location: 'Creative Hub',
     price: '$45',
-    imageUrl: 'https://images.unsplash.com/photo-1476224203421-9ac39bcb3327?auto=format&fit=crop&w=800&q=80',
+    imageUrl:
+      'https://images.unsplash.com/photo-1476224203421-9ac39bcb3327?auto=format&fit=crop&w=800&q=80',
   },
   {
     id: 'event-4',
@@ -72,7 +72,8 @@ const events = [
     date: 'Oct 24',
     location: 'Old Town',
     price: '$18',
-    imageUrl: 'https://images.unsplash.com/photo-1446776653964-20c1d3a81b06?auto=format&fit=crop&w=800&q=80',
+    imageUrl:
+      'https://images.unsplash.com/photo-1446776653964-20c1d3a81b06?auto=format&fit=crop&w=800&q=80',
   },
 ];
 
@@ -82,21 +83,24 @@ export default function HomeScreen() {
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar style="dark" />
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <View style={styles.headerRow}>
           <View>
             <Text style={styles.greeting}>Good morning,</Text>
             <Text style={styles.name}>Hello, Alex!</Text>
           </View>
-          <Image
-            source={{
-              uri: 'https://i.pravatar.cc/150?img=32',
+          <TouchableOpacity
+            onPress={() => {
+              router.push('/(tabs)/profile');
             }}
-            style={styles.avatar}
-          />
+          >
+            <Image
+              source={{
+                uri: 'https://i.pravatar.cc/150?img=32',
+              }}
+              style={styles.avatar}
+            />
+          </TouchableOpacity>
         </View>
 
         <SearchInput
@@ -123,7 +127,9 @@ export default function HomeScreen() {
                 index === topEvents.length - 1 && styles.topEventLast,
               ]}
             >
-              <TopEventCard {...event} />
+              <TopEventCard {...event} onPress={() => {
+                router.push(`/event-details`);
+              }} />
             </View>
           ))}
         </ScrollView>
@@ -134,12 +140,10 @@ export default function HomeScreen() {
         </View>
 
         <View style={styles.eventsList}>
-          {events.map(event => (
-            <EventListCard
-              key={event.id}
-              {...event}
-              style={styles.eventCard}
-            />
+          {events.map((event) => (
+            <EventListCard key={event.id} {...event} style={styles.eventCard} onPress={() => {
+              router.push(`/event-details`);
+            }} />
           ))}
         </View>
       </ScrollView>
