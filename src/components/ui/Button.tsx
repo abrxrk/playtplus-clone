@@ -1,5 +1,6 @@
 import React from 'react';
 import { TouchableOpacity, Text, StyleSheet, ViewStyle, TextStyle } from 'react-native';
+import { Colors } from '@/constants/colors';
 
 /**
  * Reusable Button Component
@@ -60,15 +61,15 @@ const styles = StyleSheet.create({
   },
   // Variants
   primary: {
-    backgroundColor: '#01295F',
+    backgroundColor: Colors.primary,
   },
   secondary: {
-    backgroundColor: '#4A90E2',
+    backgroundColor: Colors.accent,
   },
   outline: {
     backgroundColor: 'transparent',
     borderWidth: 2,
-    borderColor: '#01295F',
+    borderColor: Colors.primary,
   },
   // Sizes
   small: {
@@ -92,12 +93,12 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   primaryText: {
-    color: '#FFFFFF',
+    color: Colors.textInverse,
   },
   secondaryText: {
-    color: '#FFFFFF',
+    color: Colors.textInverse,
   },
   outlineText: {
-    color: '#01295F',
+    color: Colors.primary,
   },
 });

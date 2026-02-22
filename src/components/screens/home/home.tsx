@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
@@ -148,10 +148,12 @@ export default function HomeScreen() {
         </View>
       </ScrollView>
 
-      <TouchableOpacity style={styles.fab} activeOpacity={0.8}>
+      <Pressable style={styles.fab} onPress={() => {
+        router.push(`/create-event`);
+      }}>
         <Ionicons name="add" size={20} color={Colors.white} />
         <Text style={styles.fabLabel}>Create</Text>
-      </TouchableOpacity>
+      </Pressable>
     </SafeAreaView>
   );
 }
