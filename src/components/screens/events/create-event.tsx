@@ -41,7 +41,6 @@ export default function CreateEventScreen() {
             label="Price"
             placeholder="$0.00"
             keyboardType="decimal-pad"
-            returnKeyType="done"
           />
 
           <CoverImageUpload style={styles.coverUpload} onPress={() => {}} />
