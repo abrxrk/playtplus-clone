@@ -125,11 +125,7 @@ export default function ProfileScreen() {
             title="Logout"
             variant="primary"
             size="large"
-            onPress={() => {
-              signOut().then(() => {
-                router.push('/(onboarding)/welcome-1');
-              });
-            }}
+            onPress={() => signOut()}
             style={styles.logoutButton}
             textStyle={styles.logoutText}
           />
