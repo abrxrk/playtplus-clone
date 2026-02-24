@@ -14,6 +14,7 @@ import { Colors } from '@/constants/colors';
 import { Spacing } from '@/constants/spacing';
 import { Typography } from '@/constants/typography';
 import { router } from 'expo-router';
+import { signOut } from '@/services/auth.service';
 const likedEvents = [
   {
     id: 'liked-1',
@@ -124,7 +125,11 @@ export default function ProfileScreen() {
             title="Logout"
             variant="primary"
             size="large"
-            onPress={() => {router.push('/(onboarding)/welcome-1')}}
+            onPress={() => {
+              signOut().then(() => {
+                router.push('/(onboarding)/welcome-1');
+              });
+            }}
             style={styles.logoutButton}
             textStyle={styles.logoutText}
           />

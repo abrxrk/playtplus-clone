@@ -9,18 +9,18 @@ import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
 
 type LoginScreenProps = {
-  onLogin?: () => void;
+  onLogin?: (email: string, password: string) => void;
   onSignUp?: () => void;
   onForgotPassword?: () => void;
+  isLoading?: boolean;
 };
 
-export default function LoginScreen({ onLogin, onSignUp, onForgotPassword }: LoginScreenProps) {
+export default function LoginScreen({ onLogin, onSignUp, onForgotPassword, isLoading }: LoginScreenProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
   const handleLogin = () => {
-    // TODO: Implement login logic
-    onLogin?.();
+    onLogin?.(email, password);
   };
 
   return (
@@ -68,11 +68,12 @@ export default function LoginScreen({ onLogin, onSignUp, onForgotPassword }: Log
             </Pressable>
 
             <Button
-              title="Login"
+              title={isLoading ? 'Logging in...' : 'Login'}
               onPress={handleLogin}
               variant="primary"
               size="large"
               style={styles.loginButton}
+              disabled={isLoading}
             />
           </View>
           <View style={styles.footerSpacer}/>
