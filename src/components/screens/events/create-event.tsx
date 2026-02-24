@@ -1,7 +1,20 @@
-import React from 'react';
-import { ScrollView, View, StyleSheet } from 'react-native';
+import React, { useState } from 'react';
+import {
+  ScrollView,
+  View,
+  StyleSheet,
+  Platform,
+  Modal,
+  Text,
+  TouchableOpacity,
+  Image,
+} from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import DateTimePicker, {
+  DateTimePickerEvent,
+} from '@react-native-community/datetimepicker';
+import * as ImagePicker from 'expo-image-picker';
 import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
 import ScreenHeader from '@/components/ui/ScreenHeader';
@@ -12,6 +25,114 @@ import { Spacing } from '@/constants/spacing';
 import { router } from 'expo-router';
 
 export default function CreateEventScreen() {
+  const [selectedDateTime, setSelectedDateTime] = useState(new Date());
+  const [isDatePickerVisible, setIsDatePickerVisible] = useState(false);
+  const [isTimePickerVisible, setIsTimePickerVisible] = useState(false);
+  const [iosPickerMode, setIosPickerMode] = useState<'date' | 'time' | null>(null);
+  const [iosPickerValue, setIosPickerValue] = useState(new Date());
+  const [coverImage, setCoverImage] = useState<string | null>(null);
+
+  const dateValue = selectedDateTime.toLocaleDateString(undefined, {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  });
+  const timeValue = selectedDateTime.toLocaleTimeString(undefined, {
+    hour: 'numeric',
+    minute: '2-digit',
+  });
+
+  const handleDateChange = (event: DateTimePickerEvent, selected?: Date) => {
+    setIsDatePickerVisible(false);
+
+    if (event.type !== 'set' || !selected) {
+      return;
+    }
+
+    setSelectedDateTime((current) => {
+      const next = new Date(current);
+      next.setFullYear(selected.getFullYear(), selected.getMonth(), selected.getDate());
+      return next;
+    });
+  };
+
+  const handleTimeChange = (event: DateTimePickerEvent, selected?: Date) => {
+    setIsTimePickerVisible(false);
+
+    if (event.type !== 'set' || !selected) {
+      return;
+    }
+
+    setSelectedDateTime((current) => {
+      const next = new Date(current);
+      next.setHours(selected.getHours(), selected.getMinutes(), 0, 0);
+      return next;
+    });
+  };
+
+  const openDatePicker = () => {
+    if (Platform.OS === 'ios') {
+      setIosPickerValue(selectedDateTime);
+      setIosPickerMode('date');
+      return;
+    }
+
+    setIsDatePickerVisible(true);
+  };
+
+  const openTimePicker = () => {
+    if (Platform.OS === 'ios') {
+      setIosPickerValue(selectedDateTime);
+      setIosPickerMode('time');
+      return;
+    }
+
+    setIsTimePickerVisible(true);
+  };
+
+  const handleIosPickerChange = (_event: DateTimePickerEvent, selected?: Date) => {
+    if (!selected || !iosPickerMode) {
+      return;
+    }
+
+    setIosPickerValue((current) => {
+      const next = new Date(current);
+      if (iosPickerMode === 'date') {
+        next.setFullYear(selected.getFullYear(), selected.getMonth(), selected.getDate());
+      } else {
+        next.setHours(selected.getHours(), selected.getMinutes(), 0, 0);
+      }
+      return next;
+    });
+  };
+
+  const closeIosPicker = () => {
+    setIosPickerMode(null);
+  };
+
+  const applyIosPicker = () => {
+    setSelectedDateTime(iosPickerValue);
+    setIosPickerMode(null);
+  };
+
+  const pickCoverImage = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsEditing: true,
+      aspect: [16, 9],
+      quality: 0.8,
+    });
+
+    if (!result.canceled && result.assets[0]) {
+      setCoverImage(result.assets[0].uri);
+    }
+  };
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar style="dark" />
@@ -27,14 +148,55 @@ export default function CreateEventScreen() {
           <Input label="Event Title" placeholder="e.g. Summer Music Festival" />
 
           <View style={styles.pairRow}>
-            <DateTimeField label="Date" placeholder="Select date" onPress={() => {}} />
+            <DateTimeField label="Date" value={dateValue} onPress={openDatePicker} />
             <DateTimeField
               label="Time"
-              value="10:00 AM"
+              value={timeValue}
               style={styles.timeField}
-              onPress={() => {}}
+              onPress={openTimePicker}
             />
           </View>
+
+          {isDatePickerVisible && (
+            <DateTimePicker
+              value={selectedDateTime}
+              mode="date"
+              display="default"
+              onChange={handleDateChange}
+            />
+          )}
+          {isTimePickerVisible && (
+            <DateTimePicker
+              value={selectedDateTime}
+              mode="time"
+              display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+              onChange={handleTimeChange}
+            />
+          )}
+
+          {Platform.OS === 'ios' && iosPickerMode && (
+            <Modal transparent animationType="fade" visible>
+              <View style={styles.modalBackdrop}>
+                <View style={styles.modalCard}>
+                  <View style={styles.modalActions}>
+                    <TouchableOpacity onPress={closeIosPicker}>
+                      <Text style={styles.modalActionText}>Cancel</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={applyIosPicker}>
+                      <Text style={styles.modalActionText}>Done</Text>
+                    </TouchableOpacity>
+                  </View>
+                  <DateTimePicker
+                    value={iosPickerValue}
+                    mode={iosPickerMode}
+                    display="spinner"
+                    textColor="black"
+                    onChange={handleIosPickerChange}
+                  />
+                </View>
+              </View>
+            </Modal>
+          )}
 
           <Input label="Location" placeholder="Venue or Address" />
           <Input
@@ -43,7 +205,17 @@ export default function CreateEventScreen() {
             keyboardType="decimal-pad"
           />
 
-          <CoverImageUpload style={styles.coverUpload} onPress={() => {}} />
+          {coverImage ? (
+            <TouchableOpacity
+              style={[styles.coverImageContainer, styles.coverUpload]}
+              onPress={pickCoverImage}
+              activeOpacity={0.8}
+            >
+              <Image source={{ uri: coverImage }} style={styles.coverImage} />
+            </TouchableOpacity>
+          ) : (
+            <CoverImageUpload style={styles.coverUpload} onPress={pickCoverImage} />
+          )}
         </View>
 
         <View style={styles.footer}>
@@ -91,5 +263,37 @@ const styles = StyleSheet.create({
   },
   createButton: {
     width: '100%',
+  },
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.35)',
+    justifyContent: 'flex-end',
+  },
+  modalCard: {
+    backgroundColor: Colors.backgroundSecondary,
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    paddingHorizontal: Spacing.base,
+    paddingTop: Spacing.base,
+    paddingBottom: Spacing.lg,
+  },
+  modalActions: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: Spacing.sm,
+  },
+  modalActionText: {
+    color: Colors.primary,
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  coverImageContainer: {
+    borderRadius: 20,
+    overflow: 'hidden',
+  },
+  coverImage: {
+    width: '100%',
+    height: 180,
+    borderRadius: 20,
   },
 });
