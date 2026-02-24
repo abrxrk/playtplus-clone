@@ -10,11 +10,18 @@ import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
 
 type SignUpScreenProps = {
-  onSignUp?: () => void;
+  onSignUp?: (
+    email: string,
+    password: string,
+    confirmPassword: string,
+    fullName: string,
+    acceptedTerms: boolean
+  ) => void;
   onLogin?: () => void;
+  isLoading?: boolean;
 };
 
-export default function SignUpScreen({ onSignUp, onLogin }: SignUpScreenProps) {
+export default function SignUpScreen({ onSignUp, onLogin, isLoading }: SignUpScreenProps) {
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -22,8 +29,7 @@ export default function SignUpScreen({ onSignUp, onLogin }: SignUpScreenProps) {
   const [acceptedTerms, setAcceptedTerms] = useState(false);
 
   const handleSignUp = () => {
-    // TODO: Implement signup logic
-    onSignUp?.();
+    onSignUp?.(email, password, confirmPassword, fullName, acceptedTerms);
   };
 
   return (
@@ -102,11 +108,12 @@ export default function SignUpScreen({ onSignUp, onLogin }: SignUpScreenProps) {
             </Pressable>
 
             <Button
-              title="Sign Up"
+              title={isLoading ? 'Creating Account...' : 'Sign Up'}
               onPress={handleSignUp}
               variant="primary"
               size="large"
               style={styles.signupButton}
+              disabled={isLoading}
             />
           </View>
           <View style={styles.footer}>

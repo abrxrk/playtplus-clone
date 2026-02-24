@@ -21,23 +21,25 @@ export default function RootLayout() {
   const segments = useSegments();
 
   useEffect(() => {
-    const { data: listener } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        console.log('[Auth]', event, session?.user?.id ?? 'no user');
-
-        const inAuthGroup = segments[0] === '(auth)';
-        const inOnboarding = segments[0] === '(onboarding)';
-
-        if (event === 'SIGNED_IN' && !inOnboarding) {
-          router.replace('/(tabs)');
-        } else if (event === 'SIGNED_OUT') {
-          router.replace('/(auth)/login');
-        }
+    // Check existing session on app launch
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        router.replace('/(tabs)');
       }
-    );
+      // If no session, index.tsx naturally redirects to onboarding
+    });
+
+    const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
+      const inOnboarding = segments[0] === '(onboarding)';
+      if (event === 'SIGNED_IN' && !inOnboarding) {
+        router.replace('/(tabs)');
+      } else if (event === 'SIGNED_OUT') {
+        router.replace('/(auth)/login');
+      }
+    });
 
     return () => listener.subscription.unsubscribe();
-  }, [router, segments]);
+  }, []);
 
   return (
     <>
@@ -48,26 +50,26 @@ export default function RootLayout() {
       >
         {/* Onboarding flow */}
         <Stack.Screen name="(onboarding)" />
-        
+
         {/* Auth flow */}
-        <Stack.Screen name="(auth)"  options={{ gestureEnabled: false }} />
-        
+        <Stack.Screen name="(auth)" options={{ gestureEnabled: false }} />
+
         {/* Main app */}
-        <Stack.Screen name="(tabs)"  options={{ gestureEnabled: false }} />
-        
+        <Stack.Screen name="(tabs)" options={{ gestureEnabled: false }} />
+
         {/* Modal screens */}
-        <Stack.Screen 
-          name="create-event" 
-          options={{ 
+        <Stack.Screen
+          name="create-event"
+          options={{
             presentation: 'modal',
             animation: 'slide_from_bottom',
-          }} 
+          }}
         />
-        <Stack.Screen 
-          name="event-details" 
-          options={{ 
+        <Stack.Screen
+          name="event-details"
+          options={{
             animation: 'slide_from_right',
-          }} 
+          }}
         />
       </Stack>
       <StatusBar style="auto" />
