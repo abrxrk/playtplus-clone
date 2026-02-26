@@ -1,7 +1,7 @@
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
 
 /**
@@ -19,6 +19,10 @@ import { supabase } from '@/lib/supabase';
 export default function RootLayout() {
   const router = useRouter();
   const segments = useSegments();
+  const segmentsRef = useRef(segments);
+
+  // Keep ref updated with latest segments
+  segmentsRef.current = segments;
 
   useEffect(() => {
     // Check existing session on app launch
@@ -30,7 +34,7 @@ export default function RootLayout() {
     });
 
     const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
-      const inOnboarding = segments[0] === '(onboarding)';
+      const inOnboarding = segmentsRef.current[0] === '(onboarding)';
       if (event === 'SIGNED_IN' && !inOnboarding) {
         router.replace('/(tabs)');
       } else if (event === 'SIGNED_OUT') {
