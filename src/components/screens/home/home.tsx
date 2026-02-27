@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Pressable } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Pressable, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
@@ -10,75 +10,53 @@ import { Colors } from '@/constants/colors';
 import { Spacing } from '@/constants/spacing';
 import { Typography } from '@/constants/typography';
 import { router } from 'expo-router';
+import { getAllEvents, Event } from '@/services/event.service';
+import { getProfile } from '@/services/profile.service';
 
-const topEvents = [
-  {
-    id: 'top-1',
-    title: 'Summer Sound Festival',
-    date: 'Aug 12',
-    location: 'Downtown Park',
-    imageUrl:
-      'https://images.unsplash.com/photo-1508609349937-5ec4ae374ebf?auto=format&fit=crop&w=800&q=80',
-  },
-  {
-    id: 'top-2',
-    title: 'Tech Beats Live',
-    date: 'Sep 05',
-    location: 'City Arena',
-    imageUrl:
-      'https://images.unsplash.com/photo-1507878866276-a947ef722fee?auto=format&fit=crop&w=800&q=80',
-  },
-  {
-    id: 'top-3',
-    title: 'Creative Minds Summit',
-    date: 'Sep 22',
-    location: 'Warehouse District',
-    imageUrl:
-      'https://images.unsplash.com/photo-1470229538611-16ba8c7ffbd7?auto=format&fit=crop&w=800&q=80',
-  },
-];
+const HARDCODED_IMAGE_URL = 'https://images.unsplash.com/photo-1508609349937-5ec4ae374ebf?auto=format&fit=crop&w=800&q=80';
 
-const events = [
-  {
-    id: 'event-1',
-    title: 'Jazz Night Under Stars',
-    date: 'Oct 12',
-    location: 'Blue Note Club',
-    price: '$25',
-    imageUrl:
-      'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=800&q=80',
-  },
-  {
-    id: 'event-2',
-    title: 'Modern Art Showcase',
-    date: 'Oct 15',
-    location: 'Grand Gallery',
-    price: 'Free',
-    imageUrl:
-      'https://images.unsplash.com/photo-1485827404703-89b55fcc595e?auto=format&fit=crop&w=800&q=80',
-  },
-  {
-    id: 'event-3',
-    title: 'Product Design Forum',
-    date: 'Oct 20',
-    location: 'Creative Hub',
-    price: '$45',
-    imageUrl:
-      'https://images.unsplash.com/photo-1476224203421-9ac39bcb3327?auto=format&fit=crop&w=800&q=80',
-  },
-  {
-    id: 'event-4',
-    title: 'Night Market Experience',
-    date: 'Oct 24',
-    location: 'Old Town',
-    price: '$18',
-    imageUrl:
-      'https://images.unsplash.com/photo-1446776653964-20c1d3a81b06?auto=format&fit=crop&w=800&q=80',
-  },
-];
+function formatEventDate(dateString: string): string {
+  const date = new Date(dateString);
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
 
 export default function HomeScreen() {
   const [searchQuery, setSearchQuery] = useState('');
+  const [events, setEvents] = useState<Event[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [userName, setUserName] = useState('');
+
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        setIsLoading(true);
+        const [eventsRes, profileRes] = await Promise.all([
+          getAllEvents(),
+          getProfile(),
+        ]);
+
+        if (eventsRes.success && Array.isArray(eventsRes.data)) {
+          setEvents(eventsRes.data);
+        } else {
+          setError(eventsRes.error || 'Failed to load events');
+        }
+
+        if (profileRes.success && profileRes.data) {
+          setUserName(profileRes.data.full_name);
+        }
+      } catch {
+        setError('Failed to load events');
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    fetchData();
+  }, []);
+
+  const topEvents = events.slice(0, 3);
+  const otherEvents = events.slice(3);
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -87,7 +65,7 @@ export default function HomeScreen() {
         <View style={styles.headerRow}>
           <View>
             <Text style={styles.greeting}>Good morning,</Text>
-            <Text style={styles.name}>Hello, Alex!</Text>
+            <Text style={styles.name}>Hello, {userName || 'User'}!</Text>
           </View>
           <TouchableOpacity
             onPress={() => {
@@ -96,7 +74,7 @@ export default function HomeScreen() {
           >
             <Image
               source={{
-                uri: 'https://i.pravatar.cc/150?img=32',
+                uri: 'https://i.pravatar.cc/150?img=54',
               }}
               style={styles.avatar}
             />
@@ -114,38 +92,60 @@ export default function HomeScreen() {
           <Text style={styles.sectionAction}>See all</Text>
         </View>
 
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.topEventsList}
-        >
-          {topEvents.map((event, index) => (
-            <View
-              key={event.id}
-              style={[
-                styles.topEventWrapper,
-                index === topEvents.length - 1 && styles.topEventLast,
-              ]}
+        {isLoading ? (
+          <ActivityIndicator style={styles.loader} color={Colors.primary} />
+        ) : error ? (
+          <Text style={styles.errorText}>Failed to load events</Text>
+        ) : (
+          <>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.topEventsList}
             >
-              <TopEventCard {...event} onPress={() => {
-                router.push(`/event-details`);
-              }} />
+              {topEvents.map((event, index) => (
+                <View
+                  key={event.id}
+                  style={[
+                    styles.topEventWrapper,
+                    index === topEvents.length - 1 && styles.topEventLast,
+                  ]}
+                >
+                  <TopEventCard
+                    title={event.title}
+                    date={formatEventDate(event.event_date)}
+                    location={event.location}
+                    imageUrl={HARDCODED_IMAGE_URL}
+                    onPress={() => {
+                      router.push({ pathname: '/event-details', params: { eventId: event.id } });
+                    }}
+                  />
+                </View>
+              ))}
+            </ScrollView>
+
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Events</Text>
+              <Text style={styles.sectionAction}>Explore calendar</Text>
             </View>
-          ))}
-        </ScrollView>
 
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Events</Text>
-          <Text style={styles.sectionAction}>Explore calendar</Text>
-        </View>
-
-        <View style={styles.eventsList}>
-          {events.map((event) => (
-            <EventListCard key={event.id} {...event} style={styles.eventCard} onPress={() => {
-              router.push(`/event-details`);
-            }} />
-          ))}
-        </View>
+            <View style={styles.eventsList}>
+              {otherEvents.map((event) => (
+                <EventListCard
+                  key={event.id}
+                  title={event.title}
+                  date={formatEventDate(event.event_date)}
+                  location={event.location}
+                  imageUrl={HARDCODED_IMAGE_URL}
+                  style={styles.eventCard}
+                  onPress={() => {
+                    router.push({ pathname: '/event-details', params: { eventId: event.id } });
+                  }}
+                />
+              ))}
+            </View>
+          </>
+        )}
       </ScrollView>
 
       <Pressable style={styles.fab} onPress={() => {
@@ -241,5 +241,14 @@ const styles = StyleSheet.create({
     color: Colors.white,
     fontSize: Typography.fontSize.base,
     fontWeight: Typography.fontWeight.semibold,
+  },
+  loader: {
+    marginTop: Spacing['2xl'],
+  },
+  errorText: {
+    marginTop: Spacing['2xl'],
+    textAlign: 'center',
+    color: Colors.error,
+    fontSize: Typography.fontSize.base,
   },
 });

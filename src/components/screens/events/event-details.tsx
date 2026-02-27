@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -6,6 +6,8 @@ import {
   ScrollView,
   ImageBackground,
   TouchableOpacity,
+  ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
@@ -15,26 +17,18 @@ import Button from '@/components/ui/Button';
 import { Colors } from '@/constants/colors';
 import { Spacing } from '@/constants/spacing';
 import { Typography } from '@/constants/typography';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import RegistrationDoneModal from '@/components/RegistrationDoneModal';
+import { getAllEvents, Event } from '@/services/event.service';
+import { registerForEvent } from '@/services/registration.service';
 
-const eventDetails = {
-  title: 'Tech Innovators Summit 2024',
-  dateLabel: 'Oct 24, 2024',
-  timeLabel: '10:00 AM • Thursday morning',
-  location: 'Grand Convention Center, NY',
-  registered: '1,250 registered',
-  description:
-    'Join us for a day of inspiration, networking, and cutting-edge technology. The Tech Innovators Summit brings together industry leaders, developers, and visionaries from around the globe to explore the future of tech.',
-  imageUrl:
-    'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1000&q=80',
-};
+const HARDCODED_IMAGE_URL = 'https://images.unsplash.com/photo-1508609349937-5ec4ae374ebf?auto=format&fit=crop&w=800&q=80';
 
-const highlights = [
-  'Keynotes from technology visionaries and founders',
-  'Hands-on workshops covering AI, product, and leadership',
-  'Networking lounges with curated partners and investors',
-];
+// const highlights = [
+//   'Keynotes from technology visionaries and founders',
+//   'Hands-on workshops covering AI, product, and leadership',
+//   'Networking lounges with curated partners and investors',
+// ];
 
 type InfoRowProps = {
   icon: React.ComponentProps<typeof Ionicons>['name'];
@@ -56,20 +50,88 @@ function InfoRow({ icon, title, subtitle }: InfoRowProps) {
   );
 }
 
+function formatEventDate(dateString: string): { dateLabel: string; timeLabel: string } {
+  const date = new Date(dateString);
+  const dateLabel = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  const timeLabel = date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+  const dayName = date.toLocaleDateString('en-US', { weekday: 'long' });
+  return { dateLabel, timeLabel: `${timeLabel} • ${dayName} morning` };
+}
+
 export default function EventDetailsScreen() {
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const [event, setEvent] = useState<Event | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isRegistering, setIsRegistering] = useState(false);
+  const { eventId } = useLocalSearchParams<{ eventId: string }>();
 
-  const infoRows = [
-    {
-      icon: 'calendar-outline',
-      title: eventDetails.dateLabel,
-      subtitle: eventDetails.timeLabel,
-    },
-    {
-      icon: 'location-outline',
-      title: eventDetails.location,
-    },
-  ];
+  useEffect(() => {
+    async function fetchEvent() {
+      try {
+        setIsLoading(true);
+        const response = await getAllEvents();
+        if (response.success && Array.isArray(response.data)) {
+          const foundEvent = response.data.find((e) => e.id === eventId);
+          if (foundEvent) {
+            setEvent(foundEvent);
+          }
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    if (eventId) {
+      fetchEvent();
+    }
+  }, [eventId]);
+
+  const { dateLabel, timeLabel } = event ? formatEventDate(event.event_date) : { dateLabel: '', timeLabel: '' };
+
+  const infoRows = event
+    ? [
+        {
+          icon: 'calendar-outline' as const,
+          title: dateLabel,
+          subtitle: timeLabel,
+        },
+        {
+          icon: 'location-outline' as const,
+          title: event.location,
+        },
+      ]
+    : [];
+
+  if (isLoading) {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <ActivityIndicator style={styles.loader} color={Colors.primary} />
+      </SafeAreaView>
+    );
+  }
+
+  if (!event) {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <Text style={styles.errorText}>Event not found</Text>
+      </SafeAreaView>
+    );
+  }
+
+  async function handleRegister() {
+    setIsRegistering(true);
+    const response = await registerForEvent(event.id);
+    setIsRegistering(false);
+
+    if (response.success) {
+      setIsModalVisible(true);
+    }
+    else {
+      Alert.alert('Error', response.error || 'Failed to register for event', [
+        { text: 'OK', style: 'cancel' },
+      ]);
+    }
+  }
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -81,7 +143,7 @@ export default function EventDetailsScreen() {
       >
         <View style={styles.coverWrapper}>
           <ImageBackground
-            source={{ uri: eventDetails.imageUrl }}
+            source={{ uri: HARDCODED_IMAGE_URL }}
             style={styles.coverImage}
             imageStyle={styles.coverImageRounded}
           >
@@ -97,27 +159,27 @@ export default function EventDetailsScreen() {
             </View>
 
             <View style={styles.coverMeta}>
-              <Text style={styles.coverTag}>Summit</Text>
+              <Text style={styles.coverTag}>Event</Text>
               <Text numberOfLines={2} style={styles.coverTitle}>
-                {eventDetails.title}
+                {event.title}
               </Text>
             </View>
           </ImageBackground>
         </View>
 
         <View style={styles.content}>
-          <Text style={styles.title}>{eventDetails.title}</Text>
+          <Text style={styles.title}>{event.title}</Text>
           <View style={styles.subtitleRow}>
-            <Text style={styles.subtitle}>{eventDetails.dateLabel}</Text>
+            <Text style={styles.subtitle}>{dateLabel}</Text>
             <Text style={[styles.subtitle, styles.subtitleDot]}>•</Text>
-            <Text style={styles.subtitle}>{eventDetails.timeLabel}</Text>
+            <Text style={styles.subtitle}>{timeLabel}</Text>
           </View>
 
           <View style={styles.infoList}>
             {infoRows.map((row) => (
               <InfoRow
                 key={row.title}
-                icon={row.icon as keyof typeof Ionicons.glyphMap}
+                icon={row.icon}
                 title={row.title}
                 subtitle={row.subtitle}
               />
@@ -126,7 +188,7 @@ export default function EventDetailsScreen() {
 
           <View style={styles.statRow}>
             <View>
-              <Text style={styles.statLabel}>{eventDetails.registered}</Text>
+              <Text style={styles.statLabel}>1,250 registered</Text>
               <Text style={styles.statCaption}>People already registered</Text>
             </View>
             <TouchableOpacity style={styles.favoriteButton} onPress={() => {}}>
@@ -136,25 +198,18 @@ export default function EventDetailsScreen() {
 
           <Card variant="elevated" style={styles.aboutCard}>
             <Text style={styles.sectionHeading}>About this event</Text>
-            <Text style={styles.sectionText}>{eventDetails.description}</Text>
-            <View style={styles.highlightsList}>
-              {highlights.map((item) => (
-                <View key={item} style={styles.highlightItem}>
-                  <View style={styles.highlightDot} />
-                  <Text style={styles.highlightText}>{item}</Text>
-                </View>
-              ))}
-            </View>
+            <Text style={styles.sectionText}>{event.description}</Text>
           </Card>
         </View>
       </ScrollView>
 
-      <View style={styles.ctaContainer}>
+      <View style={styles.ctaContainer}>  
         <Button
-          title="Register Now"
-          onPress={() => setIsModalVisible(true)}
+          title={isRegistering ? 'Registering...' : 'Register Now'}
+          onPress={handleRegister}
           size="large"
           style={styles.ctaButton}
+          disabled={isRegistering}
         />
       </View>
       <RegistrationDoneModal
@@ -338,5 +393,17 @@ const styles = StyleSheet.create({
   },
   ctaButton: {
     width: '100%',
+  },
+  loader: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  errorText: {
+    flex: 1,
+    textAlign: 'center',
+    textAlignVertical: 'center',
+    color: Colors.error,
+    fontSize: Typography.fontSize.base,
   },
 });

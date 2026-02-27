@@ -28,7 +28,7 @@ export default function RootLayout() {
     // Check existing session on app launch
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
-        router.replace('/(tabs)');
+        router.replace('/(tabs)/');
       }
       // If no session, index.tsx naturally redirects to onboarding
     });
@@ -36,7 +36,7 @@ export default function RootLayout() {
     const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
       const inOnboarding = segmentsRef.current[0] === '(onboarding)';
       if (event === 'SIGNED_IN' && !inOnboarding) {
-        router.replace('/(tabs)');
+        router.replace('/(tabs)/');
       } else if (event === 'SIGNED_OUT') {
         router.replace('/(auth)/login');
       }

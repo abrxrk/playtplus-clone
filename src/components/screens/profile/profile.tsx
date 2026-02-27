@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
   Image,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
@@ -15,92 +16,48 @@ import { Spacing } from '@/constants/spacing';
 import { Typography } from '@/constants/typography';
 import { router } from 'expo-router';
 import { signOut } from '@/services/auth.service';
-const likedEvents = [
-  {
-    id: 'liked-1',
-    title: 'Summer Sound Festival',
-    date: 'Aug 12',
-    location: 'Downtown Park',
-    imageUrl:
-      'https://images.unsplash.com/photo-1508609349937-5ec4ae374ebf?auto=format&fit=crop&w=800&q=80',
-  },
-  {
-    id: 'liked-2',
-    title: 'Tech Beats Live',
-    date: 'Sep 05',
-    location: 'City Arena',
-    imageUrl:
-      'https://images.unsplash.com/photo-1507878866276-a947ef722fee?auto=format&fit=crop&w=800&q=80',
-  },
-  {
-    id: 'liked-3',
-    title: 'Creative Minds Summit',
-    date: 'Sep 22',
-    location: 'Warehouse District',
-    imageUrl:
-      'https://images.unsplash.com/photo-1470229538611-16ba8c7ffbd7?auto=format&fit=crop&w=800&q=80',
-  },
-  {
-    id: 'liked-4',
-    title: 'Night Market Vibes',
-    date: 'Oct 02',
-    location: 'Old Town',
-    imageUrl:
-      'https://images.unsplash.com/photo-1446776653964-20c1d3a81b06?auto=format&fit=crop&w=800&q=80',
-  },
-  {
-    id: 'liked-5',
-    title: 'Indie Film Night',
-    date: 'Oct 18',
-    location: 'City Cinema',
-    imageUrl:
-      'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=800&q=80',
-  },
-];
+import { getProfile, getMyRegistrations, type Profile, type EventWithRegistration } from '@/services/profile.service';
 
-const yourEvents = [
-  {
-    id: 'your-1',
-    title: 'Creative Minds Summit',
-    date: 'Sep 22',
-    location: 'Warehouse District',
-    imageUrl:
-      'https://images.unsplash.com/photo-1470229538611-16ba8c7ffbd7?auto=format&fit=crop&w=800&q=80',
-  },
-  {
-    id: 'your-2',
-    title: 'Design Sprint Workshop',
-    date: 'Oct 05',
-    location: 'Studio 9',
-    imageUrl:
-      'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=800&q=80',
-  },
-  {
-    id: 'your-3',
-    title: 'Morning Yoga Flow',
-    date: 'Oct 12',
-    location: 'Riverside Park',
-    imageUrl:
-      'https://images.unsplash.com/photo-1506126613408-eca07ce68773?auto=format&fit=crop&w=800&q=80',
-  },
-  {
-    id: 'your-4',
-    title: 'Picnic Workshop',
-    date: 'Oct 20',
-    location: 'Downtown Park',
-    imageUrl:
-      'https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?auto=format&fit=crop&w=800&q=80',
-  },
-  {
-    id: 'your-5',
-    title: 'City Lights Run',
-    date: 'Oct 28',
-    location: 'Harbor Loop',
-    imageUrl:
-      'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=800&q=80',
-  },
-];
+function formatEventDate(dateString: string): string {
+  if (!dateString) return '';
+  const date = new Date(dateString);
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+
 export default function ProfileScreen() {
+  const [profileData, setProfileData] = useState<Profile | null>(null);
+  const [registeredEvents, setRegisteredEvents] = useState<EventWithRegistration[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadProfile() {
+      const [profileRes, registrationsRes] = await Promise.all([
+        getProfile(),
+        getMyRegistrations(),
+      ]);
+
+      if (profileRes.success) {
+        setProfileData(profileRes.data || null);
+      }
+      if (registrationsRes.success) {
+        setRegisteredEvents(registrationsRes.data || []);
+      }
+      setLoading(false);
+    }
+
+    loadProfile();
+  }, []);
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={Colors.primary} />
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar style="dark" />
@@ -114,13 +71,11 @@ export default function ProfileScreen() {
 
         <View style={styles.profileCard}>
           <Image
-            source={{ uri: 'https://i.pravatar.cc/150?img=32' }}
+          // add a male avatar
+            source={{ uri: 'https://i.pravatar.cc/150?img=54' }}
             style={styles.avatar}
           />
-          <Text style={styles.name}>Alex Johnson</Text>
-          <Text style={styles.bio}>
-            Event enthusiast and community builder. Always looking for the next big music festival.
-          </Text>
+          <Text style={styles.name}>{profileData?.full_name || 'User'}</Text>
           <Button
             title="Logout"
             variant="primary"
@@ -133,51 +88,31 @@ export default function ProfileScreen() {
 
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Liked Events</Text>
-            <Text style={styles.sectionMeta}>{likedEvents.length} saved</Text>
-          </View>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.cardList}
-          >
-            {likedEvents.map((event, index) => (
-              <View
-                key={event.id}
-                style={[
-                  styles.cardWrapper,
-                  index === likedEvents.length - 1 && styles.lastCard,
-                ]}
-              >
-                <TopEventCard {...event} onPress={() => {
-                  router.push(`/event-details`);
-                }} />
-              </View>
-            ))}
-          </ScrollView>
-        </View>
-
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Your Events</Text>
-            <Text style={styles.sectionMeta}>{yourEvents.length} upcoming</Text>
+            <Text style={styles.sectionMeta}>{registeredEvents.length} upcoming</Text>
           </View>
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.cardList}
           >
-            {yourEvents.map((event, index) => (
+            {registeredEvents.map((event, index) => (
               <View
-                key={event.id}
+                key={event.registration_id}
                 style={[
                   styles.cardWrapper,
-                  index === yourEvents.length - 1 && styles.lastCard,
+                  index === registeredEvents.length - 1 && styles.lastCard,
                 ]}
               >
-                <TopEventCard {...event} onPress={() => {
-                  router.push(`/event-details`);
-                }} />
+                <TopEventCard
+                  title={event.title}
+                  date={formatEventDate(event.event_date)}
+                  location={event.location}
+                  imageUrl="https://images.unsplash.com/photo-1470229538611-16ba8c7ffbd7?auto=format&fit=crop&w=800&q=80"
+                  onPress={() => {
+                    router.push({ pathname: '/event-details', params: { eventId: event.event_id } });
+                  }}
+                />
               </View>
             ))}
           </ScrollView>
@@ -191,6 +126,11 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: Colors.background,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   contentContainer: {
     paddingHorizontal: Spacing.xl,
@@ -237,14 +177,7 @@ const styles = StyleSheet.create({
     fontSize: Typography.fontSize['3xl'],
     fontWeight: Typography.fontWeight.bold,
     color: Colors.text,
-    marginBottom: Spacing.sm,
-  },
-  bio: {
-    fontSize: Typography.fontSize.base,
-    color: Colors.textSecondary,
-    textAlign: 'center',
     marginBottom: Spacing.base,
-    lineHeight: Typography.fontSize.base * 1.5,
   },
   logoutButton: {
     marginTop: Spacing.base,

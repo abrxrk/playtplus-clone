@@ -23,8 +23,22 @@ import CoverImageUpload from '@/components/ui/CoverImageUpload';
 import { Colors } from '@/constants/colors';
 import { Spacing } from '@/constants/spacing';
 import { router } from 'expo-router';
+import { CreateEventData } from '@/services/event.service';
 
-export default function CreateEventScreen() {
+interface CreateEventScreenProps {
+  onCreateEvent: (data: CreateEventData) => void;
+  isLoading?: boolean;
+  error?: string | null;
+}
+
+export default function CreateEventScreen({
+  onCreateEvent,
+  isLoading = false,
+  error,
+}: CreateEventScreenProps) {
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [location, setLocation] = useState('');
   const [selectedDateTime, setSelectedDateTime] = useState(new Date());
   const [isDatePickerVisible, setIsDatePickerVisible] = useState(false);
   const [isTimePickerVisible, setIsTimePickerVisible] = useState(false);
@@ -133,6 +147,15 @@ export default function CreateEventScreen() {
     }
   };
 
+  const handleCreateEvent = () => {
+    onCreateEvent({
+      title,
+      description,
+      location,
+      event_date: selectedDateTime.toISOString(),
+    });
+  };
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar style="dark" />
@@ -145,7 +168,12 @@ export default function CreateEventScreen() {
         }} />
 
         <View style={styles.form}>
-          <Input label="Event Title" placeholder="e.g. Summer Music Festival" />
+          <Input
+            label="Event Title"
+            placeholder="e.g. Summer Music Festival"
+            value={title}
+            onChangeText={setTitle}
+          />
 
           <View style={styles.pairRow}>
             <DateTimeField label="Date" value={dateValue} onPress={openDatePicker} />
@@ -198,11 +226,19 @@ export default function CreateEventScreen() {
             </Modal>
           )}
 
-          <Input label="Location" placeholder="Venue or Address" />
           <Input
-            label="Price"
-            placeholder="$0.00"
-            keyboardType="decimal-pad"
+            label="Location"
+            placeholder="Venue or Address"
+            value={location}
+            onChangeText={setLocation}
+          />
+          <Input
+            label="Description"
+            placeholder="Event description..."
+            multiline
+            numberOfLines={4}
+            value={description}
+            onChangeText={setDescription}
           />
 
           {coverImage ? (
@@ -218,13 +254,16 @@ export default function CreateEventScreen() {
           )}
         </View>
 
+        {error && <Text style={styles.errorText}>{error}</Text>}
+
         <View style={styles.footer}>
           <Button
-            title="Create Event"
-            onPress={() => {}}
+            title={isLoading ? 'Creating...' : 'Create Event'}
+            onPress={handleCreateEvent}
             variant="primary"
             size="large"
             style={styles.createButton}
+            disabled={isLoading || !title.trim() || !location.trim()}
           />
         </View>
       </ScrollView>
@@ -295,5 +334,12 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 180,
     borderRadius: 20,
+  },
+  errorText: {
+    color: Colors.error,
+    fontSize: 14,
+    textAlign: 'center',
+    marginHorizontal: Spacing.lg,
+    marginBottom: Spacing.base,
   },
 });
